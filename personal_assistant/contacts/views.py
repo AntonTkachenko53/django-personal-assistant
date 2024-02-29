@@ -15,7 +15,7 @@ def main(request):
     contacts = Contact.objects.filter(user=request.user).order_by("name")
 
     if request.GET.get('search'):
-        query = request.GET.get('search')        
+        query = request.GET.get('search')
 
         contacts = contacts.filter(
             Q(name__icontains=query) |
@@ -31,7 +31,8 @@ def main(request):
         new_date = current_day + timedelta(days=int(query))
 
         contacts = Contact.objects.filter(
-            birthday__month=new_date.month, birthday__day=new_date.day
+            birthday__month=new_date.month, birthday__day=new_date.day,
+            user=request.user
         )
 
     items_per_page = 20
@@ -48,12 +49,12 @@ def main(request):
 
     page_range = range(1, contacts_page.paginator.num_pages + 1)
 
-    return render(request, "contacts/index.html", context={"page_title": "Contacts List", "contacts": contacts_page, "page_range": page_range})
+    return render(request, "contacts/index.html",
+                  context={"page_title": "Contacts List", "contacts": contacts_page, "page_range": page_range})
 
 
 @login_required(login_url='/signin/')
 def add_contact(request):
-
     if request.method == 'POST':
         form = AddContact(request.POST)
 
@@ -64,9 +65,11 @@ def add_contact(request):
 
             return redirect(to="contacts:main")
         else:
-            return render(request, "contacts/add-contact.html", {"page_title": "New contact", 'form_action': reverse('contacts:add_contact'), "form": form})
+            return render(request, "contacts/add-contact.html",
+                          {"page_title": "New contact", 'form_action': reverse('contacts:add_contact'), "form": form})
 
-    return render(request, "contacts/add-contact.html", {"page_title": "New contact", 'form_action': reverse('contacts:add_contact'), "form": AddContact})
+    return render(request, "contacts/add-contact.html",
+                  {"page_title": "New contact", 'form_action': reverse('contacts:add_contact'), "form": AddContact})
 
 
 @login_required(login_url='/signin/')
@@ -83,7 +86,8 @@ def edit_contact(request, pk):
             return render(
                 request,
                 "contacts/add-contact.html",
-                {"page_title": "Edit contact", 'form_action': reverse('contacts:edit_contact', args=[contact.pk]), 'contact': contact, "form": form},
+                {"page_title": "Edit contact", 'form_action': reverse('contacts:edit_contact', args=[contact.pk]),
+                 'contact': contact, "form": form},
             )
 
     form = AddContact(instance=contact)
